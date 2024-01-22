@@ -80,5 +80,7 @@ API Endpoints
 2. Explore and interact with the API endpoints using Swagger.
 
 <img width="1470" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/cec371fb-59d2-4939-99d7-ba4d5830f308">
+<img width="1470" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/702d048a-bb96-45d8-9eef-c086518b1d74">
+
 
 
