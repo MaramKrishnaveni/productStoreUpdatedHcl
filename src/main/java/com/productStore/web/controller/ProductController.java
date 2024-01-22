@@ -1,8 +1,11 @@
 package com.productStore.web.controller;
 
 import java.security.Principal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,10 @@ public class ProductController {
 	@Autowired
 	private OrderService orderService;
 
+	private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	String timestamp = dateFormat.format(new Date());
+
 	/**
 	 * Retrieves a list of all products.
 	 *
@@ -50,15 +57,20 @@ public class ProductController {
 	 */
 	@GetMapping(path = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> getAllProducts() {
+		logger.info("getAllProducts call started : {}", timestamp);
+
 		try {
 			// Retrieve all products from the database
 			List<Product> products = prodService.findAll();
+			logger.info("getAllProducts call ended successfully: {}", timestamp);
 
 			// Return a successful response with the list of products
 			return new ResponseEntity<>(products, HttpStatus.OK);
 		} catch (Exception e) {
 			// Handle exceptions (500 Internal Server Error)
 			String errorMessage = "Internal Server Error";
+			logger.error("getAllProducts call has error  : {}", e,timestamp);
+
 			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -71,21 +83,29 @@ public class ProductController {
 	 */
 	@GetMapping(path = "/products/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> getByNameContaining(@PathVariable(name = "name") String name) {
+		logger.info("getByNameContaining call started : {}", timestamp);
+
 		try {
 			// Find products by name containing the specified string
 			List<Product> products = prodService.findByNameContaining(name);
 
 			if (!products.isEmpty()) {
 				// Return a successful response with the list of products
+				logger.info("getByNameContaining call ended successfully : {}", timestamp);
+
 				return new ResponseEntity<>(products, HttpStatus.OK);
 			} else {
 				// Handle the case when no products with the given name are found
+				logger.warn("getByNameContaining call no product found  : {}", timestamp);
+
 				String errorMessage = "No products found with name containing: " + name;
 				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			// Handle exceptions (500 Internal Server Error)
 			String errorMessage = "Internal Server Error";
+			logger.error("getByNameContaining call has error : {}",e, timestamp);
+
 			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -98,6 +118,8 @@ public class ProductController {
 	 */
 	@GetMapping(path = "/products/{id}/stores", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> getStoresOfProduct(@PathVariable(name = "id") Long id) {
+		logger.info("getStoresOfProduct call started : {}", timestamp);
+
 		try {
 			// Find the product by ID
 			Optional<Product> product = prodService.findById(id);
@@ -122,16 +144,20 @@ public class ProductController {
 				List<Store> stores = product.get().getStores();
 
 				// Log information for debugging
-				System.out.println("Product ID: " + id + ", Number of Stores: " + stores.size());
+				logger.info("Product ID: " + id + ", Number of Stores: " + stores.size());
 
 				// Return a successful response with the list of stores
+				logger.info("getStoresOfProduct call ended successfully : {}", timestamp);
+
 				return new ResponseEntity<>(stores, HttpStatus.OK);
 			} else {
 				// Log information for debugging
-				System.out.println("Product with ID " + id + " not found.");
+			logger.info("Product with ID " + id + " not found.");
 
 				// Handle the case when the product with the given ID is not found
 				String errorMessage = "Product with ID " + id + " not found.";
+				logger.warn("getStoresOfProduct call with ID not found  : {}", timestamp);
+
 				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
@@ -140,6 +166,8 @@ public class ProductController {
 
 			// Handle other exceptions (500 Internal Server Error)
 			String errorMessage = "Internal Server Error";
+			logger.error("getStoresOfProduct call has error  : {}", e,timestamp);
+
 			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -153,6 +181,8 @@ public class ProductController {
 	 */
 	@GetMapping(path = "/products/{id}/stores/{id1}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> buyConfirmation(@PathVariable(name = "id") Long id, @PathVariable(name = "id1") Long id1) {
+		logger.info("buyConfirmation call started : {}", timestamp);
+
 		try {
 			// Find product and store by IDs
 			Optional<Product> product = prodService.findById(id);
@@ -165,15 +195,21 @@ public class ProductController {
 						" with price: " + product.get().getPrice() +
 						" from store: " + store.get().getName() +
 						" Login to proceed");
+				logger.info("buyConfirmation call ended successfully : {}", timestamp);
+
 				return ResponseEntity.ok().body(request);
 			} else {
 				// Handle the case when either the product or the store with the given IDs is not found
 				String errorMessage = "Product or Store with given IDs not found.";
+				logger.warn("buyConfirmation call has no store or product Id : {}", timestamp);
+
 				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			// Handle exceptions (500 Internal Server Error)
 			String errorMessage = "Internal Server Error";
+			logger.error("buyConfirmation call has error  : {}", e,timestamp);
+
 			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -189,6 +225,8 @@ public class ProductController {
 	@PostMapping(path = "/products/{id}/stores/{id1}/order", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> placeOrder(@PathVariable(name = "id") Long id, @PathVariable(name = "id1") Long id1,
 										@RequestParam(name = "email") String email) {
+		logger.info("placeOrder call started : {}", timestamp);
+
 		try {
 			// Find product and store by IDs
 			Optional<Product> product = prodService.findById(id);
@@ -209,20 +247,28 @@ public class ProductController {
 
 					// Return a message indicating the success of placing the order
 					MessageRequest req = new MessageRequest("Order placed successfully. Please review.");
+					logger.info("placeOrder call ended successfully : {}", timestamp);
+
 					return ResponseEntity.ok().body(req);
 				} else {
 					// Handle the case when the customer is not found
 					String errorMessage = "Customer not found.";
+					logger.warn("placeOrder call has no requested customer : {}", timestamp);
+
 					return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
 				}
 			} else {
 				// Handle the case when either the product or the store with the given IDs is not found
 				String errorMessage = "Product or Store with given IDs not found.";
+				logger.warn("placeOrder call has no Product or Store with given IDs : {}", timestamp);
+
 				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			// Handle exceptions (500 Internal Server Error)
 			String errorMessage = "Internal Server Error";
+			logger.error("placeOrder call ended with error : {}",e, timestamp);
+
 			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -238,6 +284,8 @@ public class ProductController {
 	@PostMapping(path = "/products/{id}/rating", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> productRating(Principal principle, @RequestBody RatingRequest req,
 										   @PathVariable(name = "id") Long id) {
+		logger.info("productRating call started : {}", timestamp);
+
 		try {
 			// Find the product by ID
 			Optional<Product> optionalProduct = prodService.findById(id);
@@ -262,10 +310,13 @@ public class ProductController {
 				Map<String, Object> response = new HashMap<>();
 				response.put("message", "Thanks for your rating!");
 				response.put("status", HttpStatus.ACCEPTED.value());
+				logger.info("productRating call ended successfully : {}", timestamp);
 
 				return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
 			} else {
 				// Product not found, create a new product
+				logger.info("productRating call for new product started : {}", timestamp);
+
 				Product newProduct = new Product(/* provide necessary details for the new product */);
 				newProduct.setRating(req.getRating());
 
@@ -276,6 +327,7 @@ public class ProductController {
 				Map<String, Object> response = new HashMap<>();
 				response.put("message", "Thanks for your rating!");
 				response.put("status", HttpStatus.ACCEPTED.value());
+				logger.info("productRating call for new product ended successfully : {}", timestamp);
 
 				return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
 			}
@@ -285,6 +337,7 @@ public class ProductController {
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("error", errorMessage);
 			errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+			logger.info("productRating call  has error : {}", e,timestamp);
 
 			return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
