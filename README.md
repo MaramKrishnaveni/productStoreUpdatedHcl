@@ -78,9 +78,10 @@ API Endpoints
 
 1. Access Swagger UI at [http://localhost:8094/store/swagger-ui.html](http://localhost:8094/store/swagger-ui.html).
 2. Explore and interact with the API endpoints using Swagger.
+<img width="1461" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/20cabf9b-b78f-411c-b37d-279420041335">
 
-<img width="1470" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/cec371fb-59d2-4939-99d7-ba4d5830f308">
-<img width="1470" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/702d048a-bb96-45d8-9eef-c086518b1d74">
+<img width="1451" alt="image" src="https://github.com/MaramKrishnaveni/productStoreUpdatedHcl/assets/45233676/969eba56-5e6b-4422-b5fc-212d4eee9955">
+
 
 
 
