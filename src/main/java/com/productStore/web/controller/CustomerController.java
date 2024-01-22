@@ -1,17 +1,13 @@
 package com.productStore.web.controller;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.productStore.model.entities.Customer;
 import com.productStore.model.service.CustomerService;
@@ -36,24 +32,83 @@ public class CustomerController {
 	
 	@Autowired
 	private OrderService orderService;
-	
-	@GetMapping(path="/customers",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Customer>> getAllCustomers(){
-		return new ResponseEntity<List<Customer>>(custService.findAll(),HttpStatus.OK);
+
+
+	/**
+	 * Registers a new customer.
+	 *
+	 * @param req The registration request containing customer details.
+	 * @return A message indicating the success of the registration.
+	 */
+	@PostMapping(path = "/customers/register", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> register(@RequestBody RegRequest req) {
+		try {
+			// Create a new customer
+			Customer customer = new Customer(req.getName(), req.getPassword(), req.getEmail(), req.getPhone(),
+					req.getAddress(), "ROLE_CUSTOMER", true);
+
+			// Save the customer to the database
+			custService.createCustomer(customer);
+
+			// Return a successful response with a message
+			MessageRequest request = new MessageRequest("Registration successful. Go to login.");
+			return ResponseEntity.ok().body(request);
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	@GetMapping(path="/customers/{email}",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Customer> getAllCustByEmail(@PathVariable(name="email")String email){
-		return new ResponseEntity<Customer>(custService.findByEmail(email),HttpStatus.FOUND);
+
+	/**
+	 * Retrieves a list of all customers.
+	 *
+	 * @return A list of customer objects.
+	 */
+	@GetMapping(path = "/customers", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllCustomers() {
+		try {
+			// Retrieve all customers from the database
+			List<Customer> customers = custService.findAll();
+
+			// Return a successful response with the list of customers
+			return new ResponseEntity<>(customers, HttpStatus.OK);
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	@PostMapping(path="/customers/register",produces=MediaType.APPLICATION_JSON_VALUE,consumes=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<MessageRequest> register(@RequestBody RegRequest req){
-		Customer customer=new Customer(req.getName(), req.getPassword(), req.getEmail(), req.getPhone(), req.getAddress(), "ROLE_CUSTOMER", true);
-		custService.createCustomer(customer);
-		MessageRequest request=new MessageRequest("registration successfull go to login");
-		return ResponseEntity.ok().body(request);
+
+	/**
+	 * Retrieves a customer by email.
+	 *
+	 * @param email The email address of the customer to retrieve.
+	 * @return The customer object if found, or an error message if not found.
+	 */
+	@GetMapping(path = "/customers/by-email", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllCustByEmail(@RequestParam(name = "email") String email) {
+		try {
+			// Find customer by email
+			Customer customer = custService.findByEmail(email);
+
+			if (customer != null) {
+				// Return a successful response with the customer object
+				return new ResponseEntity<>(customer, HttpStatus.OK);
+			} else {
+				// Handle the case when the customer with the given email is not found
+				String errorMessage = "Email ID " + email + " not found.";
+				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	
+
+
+
+
+
 }

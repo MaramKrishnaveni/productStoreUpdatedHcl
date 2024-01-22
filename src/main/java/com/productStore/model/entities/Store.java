@@ -25,8 +25,12 @@ public class Store {
 	
 	private String name;
 	private String phone;
+
+
 	private String address;
 	private double rating;
+
+	private int count;
 	
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JsonIgnore
@@ -41,20 +45,22 @@ public class Store {
 	public Store() {
 	}
 
-	public Store(String name, String phone, String address, double rating) {
+	public Store(String name, String phone, String address, double rating,int count) {
 		this.name = name;
 		this.phone = phone;
 		this.address = address;
 		this.rating = rating;
+		this.count =count;
 	}
 
 	public Store(String name, String phone, String address, double rating,
-			List<Product> products) {
+			List<Product> products,int count) {
 		this.name = name;
 		this.phone = phone;
 		this.address = address;
 		this.rating = rating;
 		this.products = products;
+		this.count = count;
 	}
 
 	public Long getId() {
@@ -104,8 +110,15 @@ public class Store {
 	public void setProducts(List<Product> products) {
 		this.products = products;
 	}
-	
-	
-	
-	
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
+	}
+
+
+
 }

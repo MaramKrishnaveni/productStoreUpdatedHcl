@@ -1,5 +1,6 @@
 package com.productStore.web.controller;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,19 +21,79 @@ public class OrderController {
 
 	@Autowired
 	private OrderService orderService;
-	
-	@GetMapping(path="/orders",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Order>> getAllOrders(){
-		return new ResponseEntity<List<Order>>(orderService.findAll(),HttpStatus.FOUND);
+
+	/**
+	 * Retrieves a list of all orders.
+	 *
+	 * @return A list of order objects.
+	 */
+	@GetMapping(path = "/orders", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllOrders() {
+		try {
+			// Retrieve all orders from the database
+			List<Order> orders = orderService.findAll();
+
+			// Return a successful response with the list of orders
+			return new ResponseEntity<>(orders, HttpStatus.OK);
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	@GetMapping(path="/orders/{name}",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Order>> getAllOrdersByProduct(@PathVariable(name="name")String name){
-		return new ResponseEntity<List<Order>>(orderService.findByProductNameContaining(name),HttpStatus.FOUND);
+
+	/**
+	 * Retrieves orders by product name.
+	 *
+	 * @param name The name of the product to filter orders.
+	 * @return A list of order objects for the specified product.
+	 */
+	@GetMapping(path = "/orders/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllOrdersByProduct(@PathVariable(name = "name") String name) {
+		try {
+			// Find orders by product name
+			List<Order> orders = orderService.findByProductNameContaining(name);
+
+			if (!orders.isEmpty()) {
+				// Return a successful response with the list of orders
+				return new ResponseEntity<>(orders, HttpStatus.OK);
+			} else {
+				// Handle the case when no orders are found for the specified product
+				String errorMessage = "No orders found for product name: " + name;
+				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	
-	@GetMapping(path="/orders/customers/{name}",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Order>> getAllOrdersByCustomer(@PathVariable(name="name")String name){
-		return new ResponseEntity<List<Order>>(orderService.findByCustomerName(name),HttpStatus.FOUND);
+
+	/**
+	 * Retrieves orders by customer name.
+	 *
+	 * @param name The name of the customer to filter orders.
+	 * @return A list of order objects for the specified customer.
+	 */
+	@GetMapping(path = "/orders/customers/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllOrdersByCustomer(@PathVariable(name = "name") String name) {
+		try {
+			// Find orders by customer name
+			List<Order> orders = orderService.findByCustomerName(name);
+
+			if (!orders.isEmpty()) {
+				// Return a successful response with the list of orders
+				return new ResponseEntity<>(orders, HttpStatus.OK);
+			} else {
+				// Handle the case when no orders are found for the specified customer
+				String errorMessage = "No orders found for customer name: " + name;
+				return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
+
 }

@@ -1,6 +1,7 @@
 package com.productStore.model.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import com.productStore.model.persistance.ProductRepositery;
 
 @Service
 @Transactional
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements ProductService  {
 
 	@Autowired
 	private ProductRepositery repo;
@@ -35,8 +36,8 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public Product findById(Long id) {
-		return repo.findById(id).orElseThrow(ProductNotFoundException::new);
+	public Optional<Product> findById(Long id) {
+		return repo.findById(id);
 	}
 
 	@Override
@@ -45,9 +46,14 @@ public class ProductServiceImpl implements ProductService {
 	}
 
 	@Override
-	public void update(Product product,Long id) {
+	public void update(Optional<Product> product, Long id) {
 		Product updateProduct=repo.findById(id).orElseThrow(ProductNotFoundException::new);
 		repo.save(updateProduct);
+	}
+
+	@Override
+	public Product save(Product product) {
+		return repo.save(product);
 	}
 
 }

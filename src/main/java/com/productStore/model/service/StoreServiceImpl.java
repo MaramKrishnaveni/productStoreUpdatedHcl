@@ -1,13 +1,13 @@
 package com.productStore.model.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.productStore.model.entities.Store;
-import com.productStore.model.exceptions.StoreNotFoundException;
 import com.productStore.model.persistance.StoreRepositery;
 
 @Service
@@ -28,8 +28,14 @@ public class StoreServiceImpl implements StoreService {
 	}
 
 	@Override
-	public Store findById(Long id) {
-		return repo.findById(id).orElseThrow(StoreNotFoundException::new);
+	public Store save(Store store) {
+		// Save the store using the repository
+		return repo.save(store);
+	}
+
+	@Override
+	public Optional<Store> findById(Long id) {
+		return repo.findById(id);
 	}
 	
 	

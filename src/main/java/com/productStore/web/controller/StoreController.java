@@ -1,7 +1,8 @@
 package com.productStore.web.controller;
 
-import java.util.List;
+import java.util.*;
 
+import com.productStore.model.exceptions.StoreNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,34 +28,107 @@ public class StoreController {
 	private StoreService storeService;
 	@Autowired
 	private OrderService orderService;
-	
-	@GetMapping(path="/stores",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<Store>> getAllStores(){
-		return new ResponseEntity<List<Store>>(storeService.findAll(),HttpStatus.FOUND);
-	}
-	
-	@GetMapping(path="/stores/{id}",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Store> getStoreById(@PathVariable(name="id")Long id){
-		return new ResponseEntity<Store>(storeService.findById(id),HttpStatus.FOUND);
-	}
-	
-	@PostMapping(path="/stores/{id}/rating",produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Void> productRating(@RequestBody RatingRequest req,@PathVariable(name="id")Long id){
-		Store store=storeService.findById(id);
-		int count1=0;
-		//order
-		List<Order> orders=orderService.findAll();
-		
-		for(int i=0;i<orders.size();i++){
-			if(orders.get(i).getStoreName().equals(store.getName())){
-				count1=count1+1;
-			}
+
+	/**
+	 * Retrieves a list of all stores.
+	 *
+	 * @return A list of store objects.
+	 */
+	@GetMapping(path = "/stores", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getAllStores() {
+		try {
+			// Retrieve all stores from the database
+			List<Store> stores = storeService.findAll();
+
+			// Return a successful response with the list of stores
+			return new ResponseEntity<>(stores, HttpStatus.OK);
+		} catch (Exception e) {
+			// Handle exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
-		store.setRating(((store.getRating()*count1)+req.getRating())/(count1+1));
-			
-		
-		return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
-		
 	}
+
+	/**
+	 * Retrieves a store by its ID.
+	 *
+	 * @param id The ID of the store to retrieve.
+	 * @return The store object if found, or a 404 response if not found.
+	 */
+	@GetMapping(path = "/stores/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> getStoreById(@PathVariable(name = "id") Long id) {
+		Optional<Store> store = storeService.findById(id);
+
+		if (!store.isPresent()) {
+			// Return 404 status code with an empty array in the response body
+			String errorMessage = "Store Id not found.";
+			return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.NOT_FOUND);
+		}
+
+		// Return a successful response with the store object
+		return new ResponseEntity<>(store.get(), HttpStatus.OK);
+	}
+
+	/**
+	 * Processes a rating request for a store.
+	 *
+	 * @param req The rating request object.
+	 * @param id  The ID of the store to rate.
+	 * @return A JSON response indicating the success of the rating request.
+	 */
+	@PostMapping(path = "/stores/{id}/rating", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> productRating(@RequestBody RatingRequest req, @PathVariable(name = "id") Long id) {
+		try {
+			Optional<Store> optionalStore = storeService.findById(id);
+
+			if (optionalStore.isPresent()) {
+				// Store found, update the rating
+				Store store = optionalStore.get();
+				double newRating = ((store.getRating() * store.getCount()) + req.getRating()) / (store.getCount() + 1);
+
+				// Set the new rating and update the count
+				store.setRating(newRating);
+				store.setCount(store.getCount() + 1);
+
+				// Save the updated store
+				storeService.save(store);
+
+				// Return a successful JSON response
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Thanks for your rating!");
+				response.put("status", HttpStatus.OK.value());
+
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				// Store not found, create a new store
+				Store newStore = new Store(/* provide necessary details for the new store */);
+				newStore.setRating(req.getRating());
+				newStore.setCount(1);
+
+				// Save the new store
+				storeService.save(newStore);
+
+				// Return a successful JSON response
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Thanks for your rating!");
+				response.put("status", HttpStatus.OK.value());
+
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			// Handle other exceptions (500 Internal Server Error)
+			String errorMessage = "Internal Server Error";
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("error", errorMessage);
+			errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+			return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+
+
 }
+
+
